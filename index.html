@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Memoluxim</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+:root{--fondo-1:#667eea;--fondo-2:#764ba2;--carta-trasera:#fffbea;--carta-encontrada:#c8f7c5;--boton-fondo:#fff;--boton-texto:#764ba2;--dorso-color:#4a90e2;--dorso-textura:none}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:linear-gradient(135deg,var(--fondo-1) 0%,var(--fondo-2) 100%);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:16px;color:#fff;transition:background .4s}
+h1{font-size:1.6rem;margin-bottom:8px}
+#info{font-size:.95rem;margin-bottom:12px;display:flex;flex-wrap:wrap;gap:10px;justify-content:center;text-align:center}
+select{margin-bottom:10px;padding:10px 16px;border-radius:20px;border:none;font-size:1rem;background:rgba(255,255,255,.25);color:#fff;font-weight:700;text-align:center;cursor:pointer;width:100%;max-width:280px}
+select option{color:#333}
+#panelJugadores{width:100%;max-width:320px;background:rgba(255,255,255,.15);border-radius:14px;padding:12px;margin-bottom:12px;display:flex;flex-direction:column;gap:8px}
+#marcadorJugadores{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.jugador-tag{padding:6px 12px;border-radius:20px;background:rgba(255,255,255,.2);font-size:.85rem;font-weight:700;border:2px solid transparent;transition:all .3s}
+.jugador-tag.activo{background:#fff;color:#764ba2;border-color:#fff;transform:scale(1.05)}
+#panelDorso,#panelImagenes{display:none;width:100%;max-width:400px;background:rgba(255,255,255,.15);border-radius:14px;padding:12px;margin-bottom:12px;flex-direction:column;gap:8px}
+#panelDorso.activo,#panelImagenes.activo{display:flex}
+input[type="url"]{width:100%;padding:8px 12px;border-radius:10px;border:none;font-size:.9rem;background:rgba(255,255,255,.9);color:#333}
+input[type="color"]{width:100%;height:40px;border:none;border-radius:10px;background:transparent}
+#btnAplicarDorso,#aplicarImagenes{padding:10px;border:none;border-radius:12px;background:var(--boton-fondo);color:var(--boton-texto);font-weight:700;cursor:pointer;margin-top:4px}
+#tablero{display:grid;gap:10px;width:100%;max-width:420px;margin-top:8px}
+#tablero.p4{grid-template-columns:repeat(4,1fr)}
+#tablero.p5{grid-template-columns:repeat(5,1fr)}
+#tablero.p6,#tablero.p7,#tablero.p8{grid-template-columns:repeat(4,1fr)}
+.carta{aspect-ratio:1/1;perspective:800px;cursor:pointer;position:relative}
+.carta-inner{position:relative;width:100%;height:100%;transition:transform .4s;transform-style:preserve-3d}
+.carta.volteada .carta-inner,.carta.encontrada .carta-inner{transform:rotateY(180deg)}
+.cara{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:2rem;overflow:hidden}
+.frontal{background-color:var(--dorso-color);background-image:var(--dorso-textura);background-size:cover;box-shadow:0 4px 8px rgba(0,0,0,.2)}
+.trasera{background:var(--carta-trasera);transform:rotateY(180deg);box-shadow:0 4px 8px rgba(0,0,0,.2)}
+.trasera img{width:100%;height:100%;object-fit:cover;border-radius:10px}
+.numero-carta{position:absolute;top:3px;left:3px;min-width:24px;height:24px;padding:0 6px;border-radius:12px;background:rgba(0,0,0,.7);color:#fff;font-size:.8rem;font-weight:700;display:flex;align-items:center;justify-content:center;z-index:5;pointer-events:none}
+.carta.sin-numero .numero-carta{display:none}
+.carta.encontrada .trasera{background:var(--carta-encontrada)}
+#reiniciar{margin-top:20px;padding:12px 28px;font-size:1rem;border:none;border-radius:25px;background:var(--boton-fondo);color:var(--boton-texto);font-weight:700;cursor:pointer}
+#mensaje{margin-top:14px;font-size:1.1rem;font-weight:700;min-height:1.5em;text-align:center}
+</style>
+</head>
+<body>
+<h1>🧠 Memoluxim</h1>
+<div id="info">
+<span>🕒 Tiempo: <b id="tiempo">00:00</b></span>
+<span>🔄 Movs: <b id="movimientos">0</b></span>
+<span>✅ Pares: <b id="pares">0</b>/<b id="totalPares">8</b></span>
+</div>
+<div id="panelJugadores">
+<label>👥 Modo de juego:</label>
+<select id="selectorModo"><option value="1">1 Jugador</option><option value="2">2 Jugadores</option><option value="3">3 Jugadores</option><option value="4">4 Jugadores</option></select>
+<div id="marcadorJugadores"></div>
+</div>
+<select id="selectorParejas"><option value="4">4 parejas</option><option value="5">5 parejas</option><option value="6">6 parejas</option><option value="7">7 parejas</option><option value="8" selected>8 parejas</option></select>
+<select id="selectorCategoria"><option value="frutas">🍎 Frutas</option><option value="animales">🐶 Animales</option><option value="colores">🔴 Colores</option><option value="deportes">⚽ Deportes</option><option value="imagenes">🖼️ Imágenes propias</option></select>
+<select id="selectorNumeros"><option value="no">🔢 Números: No</option><option value="si">🔢 Números: Sí</option></select>
+<select id="selectorDorso"><option value="color">🟦 Dorso: Color</option><option value="imagen">🖼️ Dorso: Imagen</option><option value="textura">🎨 Dorso: Textura</option><option value="logo">🛡️ Dorso: Logo</option></select>
+<select id="selectorColor"><option value="morado">🎨 Morado</option><option value="azul">🎨 Azul</option><option value="verde">🎨 Verde</option><option value="rosa">🎨 Rosa</option><option value="naranja">🎨 Naranja</option><option value="oscuro">🎨 Oscuro</option></select>
+<div id="panelDorso">
+<div id="dorsoColorWrap"><label>Color del dorso:</label><input type="color" id="dorsoColorInput" value="#4a90e2"></div>
+<div id="dorsoImagenWrap" style="display:none;flex-direction:column;gap:6px;"><label>Link de imagen:</label><input type="url" id="dorsoImagenInput" placeholder="https://..."></div>
+<div id="dorsoTexturaWrap" style="display:none;flex-direction:column;gap:6px;"><label>Textura:</label><select id="texturaSelect"><option value="puntos">Puntos</option><option value="rayas">Rayas</option><option value="cuadros">Cuadros</option><option value="rombos">Rombos</option><option value="estrellas">Estrellas</option><option value="ondas">Ondas</option></select><input type="color" id="texturaColorInput" value="#4a90e2" style="height:36px;"></div>
+<div id="dorsoLogoWrap" style="display:none;flex-direction:column;gap:6px;"><label>Link del logo:</label><input type="url" id="dorsoLogoInput" placeholder="https://..."></div>
+<button id="btnAplicarDorso">Aplicar dorso</button>
+</div>
+<div id="panelImagenes">
+<label>Pega 8 links de imágenes:</label>
+<input type="url" class="inputImagen" placeholder="Imagen 1"><input type="url" class="inputImagen" placeholder="Imagen 2"><input type="url" class="inputImagen" placeholder="Imagen 3"><input type="url" class="inputImagen" placeholder="Imagen 4"><input type="url" class="inputImagen" placeholder="Imagen 5"><input type="url" class="inputImagen" placeholder="Imagen 6"><input type="url" class="inputImagen" placeholder="Imagen 7"><input type="url" class="inputImagen" placeholder="Imagen 8">
+<button id="aplicarImagenes">Aplicar y empezar</button>
+</div>
+<div id="tablero" class="p8"></div>
+<div id="mensaje"></div>
+<button id="reiniciar">Reiniciar</button>
+<script>
+const cat={frutas:['🍎','🍌','🍇','🍓','🍊','🍋','🍉','🥝'],animales:['🐶','🐱','🐭','🐼','🦊','🐸','🐵','🦁'],colores:['🔴','🟠','🟡','🟢','🔵','🟣','⚫','⚪'],deportes:['⚽','🏀','🏈','⚾','🎾','🏐','🎱','🏓']};
+const imgDef=['https://picsum.photos/seed/m1/200','https://picsum.photos/seed/m2/200','https://picsum.photos/seed/m3/200','https://picsum.photos/seed/m4/200','https://picsum.photos/seed/m5/200','https://picsum.photos/seed/m6/200','https://picsum.photos/seed/m7/200','https://picsum.photos/seed/m8/200'];
+let emojis=cat.frutas,modo='emojis',imgs=[...imgDef],nums=false,parejas=8,cartas=[],p1=null,p2=null,block=false,movs=0,paresEnc=0,timer=null,seg=0,activo=false,jug=1,jActual=0,pts=[0,0,0,0];
+const $=id=>document.getElementById(id);
+const tab=$('tablero'),mEl=$('movimientos'),pEl=$('pares'),tEl=$('totalPares'),tmEl=$('tiempo'),msg=$('mensaje'),btnRe=$('reiniciar');
+const sPar=$('selectorParejas'),sCat=$('selectorCategoria'),sNum=$('selectorNumeros'),sDor=$('selectorDorso'),sCol=$('selectorColor'),sMod=$('selectorModo'),marc=$('marcadorJugadores');
+const pImg=$('panelImagenes'),btnImg=$('aplicarImagenes'),inpImg=document.querySelectorAll('.inputImagen');
+const pDor=$('panelDorso'),cWrap=$('dorsoColorWrap'),iWrap=$('dorsoImagenWrap'),tWrap=$('dorsoTexturaWrap'),lWrap=$('dorsoLogoWrap');
+const cIn=$('dorsoColorInput'),iIn=$('dorsoImagenInput'),lIn=$('dorsoLogoInput'),tSel=$('texturaSelect'),tCol=$('texturaColorInput'),btnDor=$('btnAplicarDorso');
+function mezclar(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function cara(v,esImg){return esImg?`<img src="${v}" onerror="this.replaceWith(crearError())">`:`<span>${v}</span>`;}
+window.crearError=function(){const d=document.createElement('div');d.innerHTML='🖼️❌';d.style.fontSize='1.5rem';return d;};
+function textura(t,c){c=c||'#4a90e2';let s='';if(t==='puntos')s=`<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><rect width='40' height='40' fill='${c}'/><circle cx='10' cy='10' r='4' fill='#fff' opacity='.4'/><circle cx='30' cy='30' r='4' fill='#fff' opacity='.4'/></svg>`;else if(t==='rayas')s=`<svg xmlns='http://www.w3.org/2000/svg' width='30' height='30'><rect width='30' height='30' fill='${c}'/><path d='M0 30 L30 0' stroke='#fff' stroke-width='4' opacity='.3'/></svg>`;else if(t==='cuadros')s=`<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><rect width='40' height='40' fill='${c}'/><rect width='20' height='20' fill='#fff' opacity='.15'/><rect x='20' y='20' width='20' height='20' fill='#fff' opacity='.15'/></svg>`;else if(t==='rombos')s=`<svg xmlns='http://www.w3.org/2000/svg' width='40' height='40'><rect width='40' height='40' fill='${c}'/><path d='M20 0 L40 20 L20 40 L0 20 Z' fill='none' stroke='#fff' stroke-width='2' opacity='.35'/></svg>`;else if(t==='estrellas')s=`<svg xmlns='http://www.w3.org/2000/svg' width='50' height='50'><rect width='50' height='50' fill='${c}'/><text x='25' y='33' font-size='20' text-anchor='middle' fill='#fff' opacity='.35'>★</text></svg>`;else if(t==='ondas')s=`<svg xmlns='http://www.w3.org/2000/svg' width='40' height='20'><rect width='40' height='20' fill='${c}'/><path d='M0 10 Q10 0 20 10 T40 10' fill='none' stroke='#fff' stroke-width='2' opacity='.35'/></svg>`;return `url("data:image/svg+xml;utf8,${encodeURIComponent(s)}")`;}
+function aplicarDorso(t,v,e){const r=document.documentElement;if(t==='color'){r.style.setProperty('--dorso-color',v);r.style.setProperty('--dorso-textura','none');}else if(t==='imagen'){r.style.setProperty('--dorso-color','#333');r.style.setProperty('--dorso-textura',`url("${v}")`);}else if(t==='textura'){r.style.setProperty('--dorso-color',e);r.style.setProperty('--dorso-textura',textura(v,e));}else if(t==='logo'){r.style.setProperty('--dorso-color','#1a1a2e');r.style.setProperty('--dorso-textura',`url("${v}")`);}}
+function fmt(s){return `${Math.floor(s/60).toString().padStart(2,'0')}:${(s%60).toString().padStart(2,'0')}`;}
+function startCrono(){if(activo)return;activo=true;timer=setInterval(()=>{seg++;tmEl.textContent=fmt(seg);},1000);}
+function stopCrono(){activo=false;if(timer)clearInterval(timer);}
+function renderMarc(){marc.innerHTML='';if(jug===1)return;for(let i=0;i<jug;i++){const t=document.createElement('div');t.className='jugador-tag';if(i===jActual)t.classList.add('activo');t.textContent=`J${i+1}: ${pts[i]}`;marc.appendChild(t);}}
+function iniciarJuego(){stopCrono();seg=0;tmEl.textContent='00:00';jug=parseInt(sMod.value);jActual=0;pts=[0,0,0,0];renderMarc();let v=modo==='imagenes'?imgs:emojis;parejas=Math.min(parseInt(sPar.value),v.length);tEl.textContent=parejas;const usados=v.slice(0,parejas);const pares=[];usados.forEach(x=>{pares.push({v:x,id:x});pares.push({v:x,id:x});});const mez=mezclar(pares);cartas=mez.map((c,i)=>({v:c.v,id:c.id,n:i+1}));p1=null;p2=null;block=false;movs=0;paresEnc=0;mEl.textContent='0';pEl.textContent='0';msg.textContent='';tab.innerHTML='';tab.className=`p${parejas}`;cartas.forEach(cd=>{const c=document.createElement('div');c.className='carta';if(!nums)c.classList.add('sin-numero');c.dataset.valor=cd.id;c.innerHTML=`<div class="carta-inner"><div class="cara frontal"></div><div class="cara trasera">${cara(cd.v,modo==='imagenes')}</div></div><span class="numero-carta">${cd.n}</span>`;c.onclick=()=>voltear(c);tab.appendChild(c);});}
+function voltear(c){if(block||c.classList.contains('volteada')||c.classList.contains('encontrada'))return;if(!activo&&paresEnc===0&&movs===0)startCrono();c.classList.add('volteada');if(!p1){p1=c;return;}p2=c;movs++;mEl.textContent=movs;block=true;if(p1.dataset.valor===p2.dataset.valor){p1.classList.add('encontrada');p2.classList.add('encontrada');paresEnc++;pEl.textContent=paresEnc;if(jug>1){pts[jActual]++;renderMarc();}p1=null;p2=null;block=false;if(paresEnc===parejas){stopCrono();const tf=fmt(seg);if(jug>1){const max=Math.max(...pts.slice(0,jug));const g=[];for(let i=0;i<jug;i++)if(pts[i]===max)g.push(`J${i+1}`);msg.innerHTML=`🏆 ¡Ganó ${g.join(' y ')}!<br>⏱️ ${tf}`;}else msg.innerHTML=`🎉 ¡Ganaste!<br>⏱️ ${tf}`;}}else{setTimeout(()=>{p1.classList.remove('volteada');p2.classList.remove('volteada');p1=null;p2=null;block=false;if(jug>1){jActual=(jActual+1)%jug;renderMarc();}},900);}}
+btnRe.onclick=iniciarJuego;
+sPar.onchange=()=>iniciarJuego();sMod.onchange=()=>iniciarJuego();
+sCat.onchange=e=>{const v=e.target.value;if(v==='imagenes'){modo='imagenes';pImg.classList.add('activo');}else{modo='emojis';pImg.classList.remove('activo');emojis=cat[v];}iniciarJuego();};
+btnImg.onclick=()=>{imgs=[...inpImg].map((inp,i)=>inp.value.trim()||imgDef[i]);modo='imagenes';iniciarJuego();};
+sNum.onchange=e=>{nums=e.target.value==='si';document.querySelectorAll('.carta').forEach(c=>c.classList.toggle('sin-numero',!nums));};
+sDor.onchange=e=>{const t=e.target.value;pDor.classList.add('activo');cWrap.style.display='none';iWrap.style.display='none';tWrap.style.display='none';lWrap.style.display='none';if(t==='color')cWrap.style.display='block';else if(t==='imagen')iWrap.style.display='flex';else if(t==='textura')tWrap.style.display='flex';else if(t==='logo')lWrap.style.display='flex';};
+btnDor.onclick=()=>{const t=sDor.value;if(t==='color')aplicarDorso(t,cIn.value);else if(t==='imagen')aplicarDorso(t,iIn.value);else if(t==='textura')aplicarDorso(t,tSel.value,tCol.value);else if(t==='logo')aplicarDorso(t,lIn.value);};
+const temas={morado:{'--fondo-1':'#667eea','--fondo-2':'#764ba2'},azul:{'--fondo-1':'#2196f3','--fondo-2':'#0d47a1'},verde:{'--fondo-1':'#43e97b','--fondo-2':'#38f9d7'},rosa:{'--fondo-1':'#ff6a88','--fondo-2':'#ff99ac'},naranja:{'--fondo-1':'#f7971e','--fondo-2':'#ffd200'},oscuro:{'--fondo-1':'#232526','--fondo-2':'#414345'}};
+sCol.onchange=e=>{const t=temas[e.target.value];if(t)Object.keys(t).forEach(k=>document.documentElement.style.setProperty(k,t[k]));};
+iniciarJuego();
+</script>
+</body>
+</html>
