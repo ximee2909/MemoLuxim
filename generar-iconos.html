@@ -1,0 +1,96 @@
+  <!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generar Iconos</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #222;
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      gap: 20px;
+    }
+    h1 { font-size: 1.4rem; text-align: center; }
+    #vistaPrevia {
+      border-radius: 22%;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+    button {
+      padding: 14px 28px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 25px;
+      background: #4a90e2;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100%;
+      max-width: 280px;
+    }
+    button:active { background: #357abd; }
+    .nota {
+      font-size: 0.85rem;
+      text-align: center;
+      opacity: 0.7;
+      max-width: 320px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎨 Generador de Iconos</h1>
+  <canvas id="vistaPrevia" width="192" height="192"></canvas>
+  <button onclick="descargar(192)">⬇️ Descargar icon-192.png</button>
+  <button onclick="descargar(512)">⬇️ Descargar icon-512.png</button>
+  <p class="nota">
+    En iPhone: toca el botón, luego "Guardar imagen" y muévela a la carpeta del proyecto en Spck.
+  </p>
+
+  <script>
+    function dibujarIcono(size) {
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+
+      // Fondo degradado morado
+      const grad = ctx.createLinearGradient(0, 0, size, size);
+      grad.addColorStop(0, '#667eea');
+      grad.addColorStop(1, '#764ba2');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, size, size);
+
+      // Emoji cerebro centrado
+      ctx.font = `${size * 0.55}px serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('🧠', size / 2, size / 2 + size * 0.02);
+
+      return canvas;
+    }
+
+    // Mostrar vista previa 192
+    const preview = document.getElementById('vistaPrevia');
+    const pctx = preview.getContext('2d');
+    const p = dibujarIcono(192);
+    pctx.drawImage(p, 0, 0);
+
+    function descargar(size) {
+      const canvas = dibujarIcono(size);
+      const enlace = document.createElement('a');
+      enlace.download = `icon-${size}.png`;
+      enlace.href = canvas.toDataURL('image/png');
+      document.body.appendChild(enlace);
+      enlace.click();
+      document.body.removeChild(enlace);
+    }
+  </script>
+</body>
+</html>
